@@ -152,43 +152,55 @@ class TCPServer:
             return
         
         if message.startswith(":group "): 
-            parts = message.split(" ", 2)
+            parts = message.split(" ", 3)
             if len(parts) < 2:
-                sender.send((RED + "Usage: :group <group_name>" + RESET).encode())
+                sender.send((RED + "Usage: :group <command>" + RESET).encode())
                 return
             
             cmd = parts[1]
 
             # :group create <name>
             if cmd == "create":
+                if len(parts) < 3:
+                    sender.send((RED + "Usage: :group create <group_name>" + RESET).encode())
+                    return
                 group_name = parts[2].strip()
                 self.create_group(sender, group_name)
                 return
 
             # :group join <name>
             if cmd == "join":
+                if len(parts) < 3:
+                    sender.send((RED + "Usage: :group join <group_name>" + RESET).encode())
+                    return
                 group_name = parts[2].strip()
                 self.join_group(sender, group_name)
                 return
 
             # :group leave <name>
             if cmd == "leave":
+                if len(parts) < 3:
+                    sender.send((RED + "Usage: :group leave <group_name>" + RESET).encode())
+                    return
                 group_name = parts[2].strip()
                 self.leave_group(sender, group_name)
                 return
 
             # :group send <name> <message>
             if cmd == "send":
-                sub = parts[2].split(" ", 1)
-                if len(sub) < 2:
+                if len(parts) < 4:
                     sender.send((RED + "Usage: :group send <group_name> <message>" + RESET).encode())
                     return
-                group_name, msg = sub[0], sub[1].strip()
+                group_name = parts[2].strip()
+                msg = parts[3].strip()
                 self.send_to_group(sender, group_name, msg)
                 return
 
             # :group members <name>
             if cmd == "members":
+                if len(parts) < 3:
+                    sender.send((RED + "Usage: :group members <group_name>" + RESET).encode())
+                    return
                 group_name = parts[2].strip()
                 self.list_group_members(sender, group_name)
                 return
