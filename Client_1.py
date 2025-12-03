@@ -47,9 +47,9 @@ class TCPClient:
             try:
                 data = self.sockTCP.recv(1024)
                 if not data:
-                    TCPClient.safe_print(RED + "Disconnected from server" + RESET)
+                    self.safe_print(RED + "Disconnected from server" + RESET)
                     break
-                TCPClient.safe_print(data.decode())
+                self.safe_print(data.decode())
             except:
                 break
 

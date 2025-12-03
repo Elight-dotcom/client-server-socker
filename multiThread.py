@@ -63,26 +63,29 @@ class TCPServer:
         for conn in self.connections:
             if conn != sender and self.client_names[conn] == target:
                 try:
-                    conn.send(message.encode())
+                    formatted = MAGENTA + f"[{timestamp()}] {self.client_names[sender]} PM >> " + RESET + message
+                    conn.send(formatted.encode())
+                    self.safe_print(formatted)
                 except:
                     conn.close()
                     self.connections.remove(conn)
-
+                return True
+        return False
+    
     # =========== CHECK INPUT USER ==========
-    def check_input_user(self, message):
-        if message.strip() == ":list":
-            self.safe_print(GREEN + f"[{timestamp()}] SERVER: {len(self.connections)} client(s) connected" + RESET)
-            for conn in self.connections:
-                try:
-                    print("- " + CYAN + self.client_names[conn] + YELLOW + f" ({conn.getpeername()[0]}:{conn.getpeername()[1]})")
-                except:
-                    pass
+    def check_input_user(self, sender, message):
+        if message.startswith(":pm "): 
+            parts = message.split(" ", 2)
+            if len(parts) < 3:
+                sender.send((RED + "Usage: :pm <target> <message>" + RESET).encode())
+                return
+            target = parts[1].strip()
+            msg = " ".join(parts[2:]).strip()
+            succes = self.private_message(sender, target, msg)
+            if not succes:
+                sender.send((RED + f"Client {target} not found" + RESET).encode())
             return
         
-        if message.startswith(":pm "): 
-            self.running = False
-            return
-
     # =========== HANDLING CLIENT ===========
     def handle_client(self, koneksi, alamat):
         client_name = koneksi.recv(1024).decode()
@@ -104,11 +107,11 @@ class TCPServer:
             msg = data.decode()
 
             if msg.startswith(":"): 
-                self.check_input_user(msg)
+                self.check_input_user(koneksi, msg)
                 continue
 
             formatted = YELLOW + f"[{timestamp()}] {self.client_names[koneksi]} >> " + RESET + msg
-            print(formatted)
+            self.safe_print(formatted)
 
             self.broadcast(formatted, sender=koneksi)
 
@@ -146,7 +149,7 @@ class TCPServer:
             self.safe_print(GREEN + f"[{timestamp()}] SERVER: {len(self.connections)} client(s) connected" + RESET)
             for conn in self.connections:
                 try:
-                    print("- " + CYAN + self.client_names[conn] + YELLOW + f" ({conn.getpeername()[0]}:{conn.getpeername()[1]})")
+                    self.safe_print("- " + CYAN + self.client_names[conn] + YELLOW + f" ({conn.getpeername()[0]}:{conn.getpeername()[1]})")
                 except:
                     pass
             return
@@ -191,7 +194,6 @@ class TCPServer:
             sys.exit(0)
 
         print(RED + "Invalid command" + RESET)
-
 
     # =========== INPUT SERVER ===========
     def server_input(self):
