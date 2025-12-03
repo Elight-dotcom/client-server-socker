@@ -58,6 +58,31 @@ class TCPServer:
                     conn.close()
                     self.connections.remove(conn)
 
+    # =========== PRIVATE MESSAGE ===========
+    def private_message(self, sender, target, message):
+        for conn in self.connections:
+            if conn != sender and self.client_names[conn] == target:
+                try:
+                    conn.send(message.encode())
+                except:
+                    conn.close()
+                    self.connections.remove(conn)
+
+    # =========== CHECK INPUT USER ==========
+    def check_input_user(self, message):
+        if message.strip() == ":list":
+            self.safe_print(GREEN + f"[{timestamp()}] SERVER: {len(self.connections)} client(s) connected" + RESET)
+            for conn in self.connections:
+                try:
+                    print("- " + CYAN + self.client_names[conn] + YELLOW + f" ({conn.getpeername()[0]}:{conn.getpeername()[1]})")
+                except:
+                    pass
+            return
+        
+        if message.startswith(":pm "): 
+            self.running = False
+            return
+
     # =========== HANDLING CLIENT ===========
     def handle_client(self, koneksi, alamat):
         client_name = koneksi.recv(1024).decode()
@@ -77,6 +102,11 @@ class TCPServer:
                 break
 
             msg = data.decode()
+
+            if msg.startswith(":"): 
+                self.check_input_user(msg)
+                continue
+
             formatted = YELLOW + f"[{timestamp()}] {self.client_names[koneksi]} >> " + RESET + msg
             print(formatted)
 
