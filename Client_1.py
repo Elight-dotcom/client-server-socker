@@ -102,9 +102,9 @@ class TCPClient:
             if not self.attempt_reconnection():
                 sys.exit(1)
         
-        print(GREEN + f"╔══════════════════════════════════════════════════════════╗") 
-        print(f"║ [{timestamp()}] CONNECTED AS {self.client_name} ({self.HOST}:{self.PORT}) ║") 
-        print(f"╚══════════════════════════════════════════════════════════╝" + RESET)
+        print(GREEN + f"╔═══════════════════════════════════════════════════════╗") 
+        print(f"║   [{timestamp()}] CONNECTED AS {self.client_name} ({self.HOST}:{self.PORT})   ║") 
+        print(f"╚═══════════════════════════════════════════════════════╝" + RESET)
 
     def handle_receive(self):
         while self.running:
