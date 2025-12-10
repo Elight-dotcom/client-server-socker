@@ -482,6 +482,42 @@ The application uses a multi-threaded architecture to enable simultaneous operat
 └── README.md          # This file
 ```
 
+## Digram sequence
+
+```mermaid
+---
+config:
+  theme: default
+  look: handDrawn
+  layout: elk
+---
+graph TB
+    Start([Start Server]) --> CheckArgs{Arguments<br/>Valid?}
+    CheckArgs -->|No| Error1[Display Error Message]
+    Error1 --> Exit1([Exit])
+    CheckArgs -->|Yes| Init[Initialize Variables<br/>connections, client_names, groups]
+    Init --> CreateSocket[Create TCP Socket<br/>AF_INET, SOCK_STREAM]
+    CreateSocket --> TryBind{Bind<br/>Success?}
+    TryBind -->|No| Error2[Display Error]
+    Error2 --> Exit2([Exit])
+    TryBind -->|Yes| Listen[Listen on Port<br/>Max 5 connections]
+    Listen --> Display[Display Server Started]
+    Display --> StartThread[Start server_input Thread]
+    StartThread --> WaitClient[Wait for Client Connection]
+    WaitClient --> Accept{Accept<br/>Connection}
+    Accept -->|New Client| HandleClient[Create handle_client Thread]
+    HandleClient --> WaitClient
+    Accept -->|Shutdown| Close[Close All Connections]
+    Close --> Exit3([Exit])
+
+    style Start fill:#90EE90
+    style Exit1 fill:#FFB6C6
+    style Exit2 fill:#FFB6C6
+    style Exit3 fill:#FFB6C6
+    style Display fill:#87CEEB
+    style HandleClient fill:#FFD700
+```
+
 ---
 
 ## Author
