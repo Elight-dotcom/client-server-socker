@@ -1,4 +1,3 @@
-
 import sys, threading, datetime
 from socket import *
 
@@ -15,13 +14,6 @@ def timestamp():
     return datetime.datetime.now().strftime('%H:%M:%S')
 
 class TCPServer:
-    @staticmethod
-    def safe_print(msg):
-        sys.stdout.write("\033[2K\r")
-        print(msg)
-        sys.stdout.write(CYAN + "INPUT >> " + RESET)
-        sys.stdout.flush()
-
     def __init__(self):
         if len(sys.argv) != 3:
             print('Penggunaan:' + sys.argv[0] + ' [ip address] [port]')
@@ -45,9 +37,17 @@ class TCPServer:
             sys.exit(1)
         else:
             print(GREEN)
-            print(f"╔═══════════════════════════════════════════╗")
+            print(f"╔═════════════════════════════════════════╗")
             print(f"║   SERVER STARTED ({self.HOST}:{self.PORT})   ║")
-            print(f"╚═══════════════════════════════════════════╝" + RESET)
+            print(f"╚═════════════════════════════════════════╝" + RESET)
+
+    # ========== SAFE PRINT ===========
+    @staticmethod
+    def safe_print(msg):
+        sys.stdout.write("\033[2K\r")
+        print(msg)
+        sys.stdout.write(CYAN + "INPUT >> " + RESET)
+        sys.stdout.flush()
 
     # =========== BROADCAST ===========
     def broadcast(self, message, sender=None):
@@ -263,6 +263,15 @@ class TCPServer:
                 return True
             
         return False
+    
+    # =========== PRIVATE MESSAGE SERVER ===============
+    def private_message_server(self, target, message):
+        for conn in self.connections:
+            if self.client_names[conn] == target:
+                conn.send((YELLOW + f"[{timestamp()}] SERVER [PM] >> " + RESET + message).encode())
+                return True
+            
+        return False
 
     # =========== CHECKING FOR INPUT =============
     def check_input(self, message):
@@ -287,6 +296,22 @@ class TCPServer:
                 return
             
             self.safe_print(GREEN + f"Client {target} has been kicked" + RESET)
+            return
+        
+        if message.startswith(":pm "):
+            parts = message.split(" ", 2)
+            if len(parts) < 3:
+                self.safe_print(RED + "Usage: :pm <username> <message>" + RESET)
+                return
+            target = parts[1].strip()
+            msg = parts[2].strip()
+
+            success = self.private_message_server(target, msg)
+            if not success:
+                self.safe_print(RED + f"Client {target} not found" + RESET)
+                return
+            
+            self.safe_print(GREEN + f"Private message sent to {target}" + RESET)
             return
         
         if message.startswith(":rename "):
